@@ -1,19 +1,14 @@
 #!/usr/bin/python
 import os
-import sys
 import shutil
 import argparse
 import progressbar
 import inspect
-import ConfigParser
 from time import sleep
 
 parser=argparse.ArgumentParser()
 parser.add_argument('-proj', required = True)
-parser.add_argument('-cfg', required = False, default='ani.cfg')
 args=parser.parse_args()
-
-cfg_f = args.cfg
 
 proj_name=args.proj 
 print "Project name: ", proj_name
@@ -38,29 +33,6 @@ proj_rand_seq=args.proj + '_rand_seq'
 proj_seq_lib=args.proj + '_seq_lib'
 proj_tb_dut_top=args.proj + '_tb_dut_top'
 proj_rand_test=args.proj + '_rand_test'
-
-def configCreons_UVM():
-  config = ConfigParser.ConfigParser()
-
-  if os.path.exists(cfg_f):
-    print 'Using Config file: ', cfg_f
-    config.read(cfg_f)
-  else:
-    print 'Error! Unable to find config file: ', cfg_f
-    sys.exit(1)
-
-  config.get('Common', 'UVM_Ver')
-  config.get('Common', 'Simulator')
-  config.get('Directories', 'dut')
-  config.get('Directories', 'tb')
-  config.get('Directories', 'seq')
-  config.get('Directories', 'run')
-  print config.get('Common', 'UVM_Ver')
-  print config.get('Common', 'Simulator')
-  print config.get('Directories', 'dut')
-  print config.get('Directories', 'tb')
-  print config.get('Directories', 'seq')
-  print config.get('Directories', 'run')
 
 def createProgressBar():
   bar = progressbar.ProgressBar(maxval=40, \
@@ -122,7 +94,7 @@ def createInmonitorheader() :
         print >> op_f, "  uvm_analysis_port #("+proj_xactn+") m_in_aport;\n"
         print >> op_f, "  `uvm_component_utils_begin("+proj_input_monitor+")"
         print >> op_f, "    `uvm_field_object(x0, UVM_ALL_ON)"
-        print >> op_f, "  `uvm_component_utils_end\n"
+       print >> op_f, "  `uvm_component_utils_end\n"
         print >> op_f, "  extern function new(string name, uvm_component parent);"
         print >> op_f, "  extern virtual task run_phase(uvm_phase phase);"
         print >> op_f, "  extern virtual task collect_data();\n"
@@ -649,17 +621,16 @@ def createSeqTests() :
 	print "Sequence Tests are created"
         creons_show_progress()
 
-def creons_dvc_uvm () :
+def vw_dvc_uvm () :
 	print "Starting Creons UVM"
         if os.path.exists(proj_name):
             shutil.rmtree(proj_name, ignore_errors=True)
-
         
 	os.mkdir(proj_name)
 	os.chdir(proj_name)
 	os.mkdir("dut_src")
 	os.mkdir("tb_src")
-	creons_show_progress()
+        creons_show_progress()
 	createTransactionheader()
         createTransaction()
 	createSequencerheader()
@@ -685,7 +656,7 @@ def creons_dvc_uvm () :
   	createSvaBind ()
         createRunDir()
         createSeqTests()
-        print 'creons_uvm: Complete UVM environment for project: ', proj_name, '  created!!'
+        print 'creons: Complete UVM environment for project: ', proj_name, '  created!!'
 
 
 def creons_show_progress():
@@ -693,10 +664,9 @@ def creons_show_progress():
   print(inspect.stack()[1][3])
 
 def creons_run():
-    configCreons_UVM()
-    creons_dvc_pid = os.fork()
-    if creons_dvc_pid == 0:
-      creons_dvc_uvm()
+    creons_pid = os.fork()
+    if creons_pid == 0:
+      creons_uvm()
     else:
       createProgressBar()
         
